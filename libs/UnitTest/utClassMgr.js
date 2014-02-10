@@ -1,6 +1,7 @@
 const ClassMgr	= require('../classManager');
 
 const create	= ClassMgr.create;
+const Interface	= ClassMgr.interface;
 
 function classPerson (name) {
 	this.name = name;
@@ -22,9 +23,18 @@ classPerson.prototype.wtf = function () {
 	return 10;
 };
 classPerson.prototype.test = function (test) {
-	console.log('Protected:');
-	console.log(this.delegate.getExtendInstance(test));
-	console.log(this.delegate.getExtendInstance(test).wtf());
+	console.log('=========    Protected:');
+	test = this.delegate.getExtendInstance(test);
+	console.log(test);
+	console.log(test.wtf());
+	var itf = new Interface({
+		method	: ['wtf'],
+		property: ['age']
+	});
+	var del = test.interface(itf);
+	console.log(del);
+	console.log(del.wtf());
+	console.log(del.age);
 };
 
 function classObject (Person) {
@@ -33,9 +43,19 @@ function classObject (Person) {
 }
 classObject.prototype.type	= 'Class Object';
 classObject.prototype.total	= 0;
-classObject.prototype.test = function () {
-	console.log('Friendly:');
-	console.log(this.delegate.getExtendInstance(this.person));
+classObject.prototype.test = function (person) {
+	person = person || this;
+	console.log('=========    Friendly:');
+	person = person.delegate.getExtendInstance(person.person)
+	console.log(person);
+	var itf = new Interface({
+		method	: ['fight'],
+		property: ['name']
+	});
+	var del = person.interface(itf);
+	console.log(del);
+	console.log(del.fight());
+	console.log(del.name);
 };
 
 classPerson.structure = {
@@ -147,3 +167,12 @@ console.log('...............');
 
 obj.test();
 man.test(man);
+
+var interface = new Interface({
+	method	: ['isAlive'],
+	property: ['name']
+});
+var del = man.interface(interface);
+console.log(del);
+console.log(del.isAlive());
+console.log(del.name);

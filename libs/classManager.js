@@ -70,7 +70,8 @@ function set_delegates (kernel, target, struct) {
 			item = struct.method[i];
 			(function (mName) {
 				target[mName] = function () {
-					return kernel[mName].apply(kernel, arguments);
+					if (!!kernel[mName]) return kernel[mName].apply(kernel, arguments);
+					return null;
 				};
 			})(item);
 		}
@@ -95,6 +96,15 @@ function classKeyRing (Class) {
 	this.class = Class;
 }
 
+function classInterface (interface) {
+	this.method		= interface.method || [];
+	this.property	= interface.property || [];
+}
+classInterface.is = function (interface) {
+	if (isNull(interface)) return false;
+	return (interface instanceof classInterface);
+};
+
 function create (Class, Param) {
 	if (isNull(Class)) return null;
 	
@@ -114,6 +124,7 @@ function create (Class, Param) {
 	// 根据自身KeyRing获取拓展代理
 	var requestKeyRing = null;
 	function getExtendInstance (obj) {
+		if (isNull(obj)) return null;
 		if (!obj.IsDelegate) return obj;
 		obj.requestKeyRing = keyRing;
 		return obj.extend;
@@ -155,6 +166,12 @@ function create (Class, Param) {
 		requestKeyRing = null;
 		return delegate;
 	}
+	function createInterface (interface) {
+		if (!classInterface.is(interface)) return null;
+		var obj = {};
+		set_delegates(this, obj, interface);
+		return obj;
+	}
 	
 	function createDelegate (dele, level) {
 		Object.defineProperty(dele, 'IsDelegate', {value : true});
@@ -162,6 +179,7 @@ function create (Class, Param) {
 		dele.getExtendInstance = getExtendInstance;
 		Object.defineProperty(dele, 'requestKeyRing', {set : setRequestKeyRing});
 		Object.defineProperty(dele, 'extend', {get	: getExtend});
+		dele.interface = createInterface;
 	}
 	
 	createDelegate(delegate, 0);
@@ -170,4 +188,5 @@ function create (Class, Param) {
 	return delegate;
 }
 
-exports.create = create;
+exports.create		= create;
+exports.interface	= classInterface;
