@@ -24,10 +24,12 @@
  * Interface是freezed的。
  */
 
-const utils	= require('./utils');
+const utils		= require('./utils');
+const eventMgr	= require('./eventManager');
 
-const isNull	= utils.isNull;
-const freeze	= utils.freeze;
+const isNull		= utils.isNull;
+const freeze		= utils.freeze;
+const eventalize	= eventMgr.eventalize;
 
 const tagFun	= 'function';
 
@@ -129,6 +131,10 @@ function create (Class, Param) {
 	var friendDelegate = null;
 	var protectedDelegate = null;
 	
+	// 事件处理
+	var eventHandler = {};
+	eventalize(eventHandler);
+	
 	// 根据自身KeyRing获取拓展代理
 	var requestKeyRing = null;
 	function getExtendInstance (obj) {
@@ -189,6 +195,7 @@ function create (Class, Param) {
 		Object.defineProperty(dele, 'requestKeyRing', {set : setRequestKeyRing});
 		Object.defineProperty(dele, 'extend', {get	: getExtend});
 		dele.interface = createInterface;
+		dele.eventMgr = eventHandler;
 	}
 	
 	createDelegate(delegate, 0);
