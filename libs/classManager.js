@@ -15,11 +15,19 @@
  * method	：方法
  * property	：属性
  * 推荐使用method而非property
+ *
+ * -------------------------------------------
+ * Ver	: 0.0.2
+ * Date	: 2014.02.11
+ * -------------------------------------------
+ * 增加了Interface功能。
+ * Interface是freezed的。
  */
 
 const utils	= require('./utils');
 
 const isNull	= utils.isNull;
+const freeze	= utils.freeze;
 
 const tagFun	= 'function';
 
@@ -170,6 +178,7 @@ function create (Class, Param) {
 		if (!classInterface.is(interface)) return null;
 		var obj = {};
 		set_delegates(this, obj, interface);
+		freeze(obj);
 		return obj;
 	}
 	

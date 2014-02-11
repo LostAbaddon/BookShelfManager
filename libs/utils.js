@@ -9,3 +9,9 @@ const ket = ')';
 String.prototype.toJSON = function () {
 	return eval(bra + this + ket);
 };
+
+var freeze = Object.freeze;
+if (isNull(freeze)) {
+	freeze = function (obj) {};
+}
+exports.freeze = freeze;
