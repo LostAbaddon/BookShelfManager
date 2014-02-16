@@ -11,9 +11,11 @@
  * private	：类实例内部变量。所有不是其它三类的，都自动是private。
  * protected：同类实例可访问
  * friendly	：友类实例可访问
- * 对象内容	：method，property
+ * 对象内容	：method，property，event，invoker
  * method	：方法
  * property	：属性
+ * event	：可相应的事件
+ * invoker	：可触发的事件
  * 推荐使用method而非property
  *
  * -------------------------------------------
@@ -59,18 +61,18 @@ function getStruct (instance) {
  *			  1：friendly
  *			  2：protected
  */
-function setDelegates (kernel, target, struct, level) {
+function setDelegates (kernel, target, eventMgr, struct, level) {
 	if (isNull(level)) level = 0;
 	if (level < 0) return;
 	
-	set_delegates(kernel, target, struct.public);
-	if (level > 0) set_delegates(kernel, target, struct.friendly);
-	if (level > 1) set_delegates(kernel, target, struct.protected);
+	set_delegates(kernel, target, eventMgr, struct.public);
+	if (level > 0) set_delegates(kernel, target, eventMgr, struct.friendly);
+	if (level > 1) set_delegates(kernel, target, eventMgr, struct.protected);
 }
 /**
  * 根据传入的struct设置delegate
  */
-function set_delegates (kernel, target, struct) {
+function set_delegates (kernel, target, eventMgr, struct) {
 	if (isNull(struct)) return;
 	var l, i, item;
 	
@@ -94,11 +96,40 @@ function set_delegates (kernel, target, struct) {
 			(function (pName) {
 				Object.defineProperty(target, pName, {
 					get			: function () {return kernel[pName];},
-					set			: function (newValue) {kernel[pName] = newValue;},
+					set			: function (newValue) {if (!isNull(kernel[pName]) || kernel[pName] === null) kernel[pName] = newValue;},
 					enumerable	: true
 				});
 			})(item);
 		}
+	}
+	
+	if (!isNull(struct.event)) {
+		(function (eventList, eventMgr) {
+			target.on = function () {
+				_event_deal(eventList, eventMgr.on, arguments, kernel);
+			};
+			target.once = function () {
+				_event_deal(eventList, eventMgr.once, arguments, kernel);
+			};
+			target.off = function () {
+				_event_deal(eventList, eventMgr.off, arguments, kernel);
+			};
+		})(struct.event, eventMgr);
+	}
+	
+	if (!isNull(struct.invoker)) {
+		(function (eventList, eventMgr) {
+			target.fire = function () {
+				_event_deal(eventList, eventMgr.fire, arguments, kernel);
+			};
+		})(struct.invoker, eventMgr);
+	}
+}
+function _event_deal (eventList, eventHandler, eventArguments, kernel) {
+	var len = eventArguments.length;
+	var eventName = eventArguments[0];
+	if (eventList.indexOf(eventName) >= 0) {
+		eventHandler.apply(kernel, eventArguments);
 	}
 }
 
@@ -182,24 +213,25 @@ function create (Class, Param) {
 	}
 	function createInterface (interface) {
 		if (!classInterface.is(interface)) return null;
-		var obj = {};
-		set_delegates(this, obj, interface);
+		var obj = {}, evts = {};
+		eventalize(evts);
+		set_delegates(this, obj, evts, interface);
 		freeze(obj);
 		return obj;
 	}
 	
 	function createDelegate (dele, level) {
 		Object.defineProperty(dele, 'IsDelegate', {value : true});
-		setDelegates(kernel, dele, struct, level);
+		setDelegates(kernel, dele, eventHandler, struct, level);
 		dele.getExtendInstance = getExtendInstance;
 		Object.defineProperty(dele, 'requestKeyRing', {set : setRequestKeyRing});
 		Object.defineProperty(dele, 'extend', {get	: getExtend});
 		dele.interface = createInterface;
-		dele.eventMgr = eventHandler;
 	}
 	
 	createDelegate(delegate, 0);
 	Object.defineProperty(kernel, 'delegate', {value : delegate});
+	Object.defineProperty(kernel, 'eventMgr', {value : eventMgr});
 	
 	return delegate;
 }

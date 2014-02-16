@@ -12,17 +12,18 @@ function _off (eventMgr, eventName, callback) {
 	if (!eventName) return;
 	var handlers = eventMgr[eventName];
 	if (!handlers) return;
-	var index;
+	var index = -1;
 	if (!callback) {
 		eventMgr[eventName] = [];
 	}
 	else {
-		index = handlers.filter(function (item) {
+		handlers.some(function (item) {
+			index ++;
 			if (item[0] === callback) return true;
 			return false;
 		});
-		if (index.length > 0) {
-			handlers.splice(index[0], 1);
+		if (index >= 0) {
+			handlers.splice(index, 1);
 		}
 	}
 }
@@ -35,7 +36,7 @@ function _fire (host, eventMgr, eventName, parameters) {
 	var i;
 	for (i = 0; i < len; i += 1) {
 		handler = handlers[i];
-		handler[0].apply(obj, parameters);
+		handler[0].apply(host, parameters);
 		if (handler[1]) {
 			handlers.splice(i, 1);
 			i --;
@@ -58,7 +59,7 @@ function createEvent (obj) {
 	};
 	obj.fire = function () {
 		var len = arguments.length;
-		if (len < 2) return;
+		if (len < 1) return;
 		var eventName = arguments[0];
 		var parameters = [];
 		var i;

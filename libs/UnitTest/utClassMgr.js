@@ -53,6 +53,7 @@ classObject.prototype.test = function (person) {
 		property: ['name']
 	});
 	var del = person.interface(itf);
+	console.log('xxxxxxxxxxxxxxxxx');
 	console.log(del);
 	console.log(del.fight());
 	console.log(del.name);
@@ -62,14 +63,20 @@ classPerson.structure = {
 	ally		: [classObject],
 	public		: {
 		method	: ['isAlive', 'aged', 'test'],
-		property: ['name']
+		property: ['name'],
+		event	: ['AA', 'BB'],
+		invoker	: ['AA', 'CC']
 	},
 	protected	: {
 		method	: ['wtf'],
-		property: ['age']
+		property: ['age'],
+		event	: ['CC', 'FF'],
+		invoker	: ['CC']
 	},
 	friendly	: {
-		method	: ['fight']
+		method	: ['fight'],
+		event	: ['DD', 'EE'],
+		invoker	: ['EE', 'BB']
 	}
 };
 
@@ -176,3 +183,28 @@ var del = man.interface(interface);
 console.log(del);
 console.log(del.isAlive());
 console.log(del.name);
+
+console.log('{{{{{{{{{{{{{{{{{{{{{{');
+man.on('AA', function () {console.log('Event AA Fired!');});
+man.on('BB', function () {console.log('Event AA Fired!');});
+
+man.fire('AA');
+man.fire('BB');
+man.fire('CC');
+
+/*
+{
+	public		: {
+		event	: ['AA', 'BB'],
+		invoker	: ['AA', 'CC']
+	},
+	protected	: {
+		event	: ['CC', 'FF'],
+		invoker	: ['CC']
+	},
+	friendly	: {
+		event	: ['DD', 'EE'],
+		invoker	: ['EE', 'BB']
+	}
+};
+*/

@@ -1,6 +1,5 @@
 var isNull = exports.isNull = function (obj) {
-	if (obj === undefined) return true;
-	if (obj === null) return true;
+	if (isNaN(obj)) return !obj;
 	return false;
 };
 
